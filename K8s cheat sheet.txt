@@ -1,0 +1,69 @@
+eksctl create cluster --name=eksdemo1 \
+                      --region=us-east-1 \
+                      --zones=us-east-1a,us-east-1b \
+                      --without-nodegroup 
+
+# Get List of clusters
+eksctl get cluster
+
+# Replace with region & cluster name
+eksctl utils associate-iam-oidc-provider \
+    --region us-east-1 \
+    --cluster eksdemo1 \
+    --approve
+
+# Create Public Node Group   
+eksctl create nodegroup --cluster=eksdemo1 \
+                       --region=us-east-1 \
+                       --name=eksdemo1-ng-public1 \
+                       --node-type=t3.medium \
+                       --nodes=2 \
+                       --nodes-min=2 \
+                       --nodes-max=4 \
+                       --node-volume-size=20 \
+                       --ssh-access \
+                       --ssh-public-key=kube-demo \
+                       --managed \
+                       --asg-access \
+                       --external-dns-access \
+                       --full-ecr-access \
+                       --appmesh-access \
+                       --alb-ingress-access 
+
+# List NodeGroups in a cluster
+eksctl get nodegroup --cluster=<clusterName>
+
+# List Nodes in current kubernetes cluster
+kubectl get nodes -o wide
+
+# Our kubectl context should be automatically changed to new cluster
+kubectl config view --minify
+
+ssh -i kube-demo.pem ec2-user@<Public-IP-of-Worker-Node>
+
+kubectl run my-first-pod --image stacksimplify/kubenginx:1.0.0
+
+
+kubectl describe pod my-first-pod 
+
+kubectl delete pod my-first-pod
+
+
+kubectl get pod my-first-pod -o yaml   
+
+kubectl get service my-first-service -o yaml 
+
+kubectl get all
+
+kubectl delete svc my-first-service
+
+kubectl delete pod my-first-pod
+
+kubectl logs my-first-pod
+
+# Stream pod logs with -f option and access application to see logs
+kubectl logs <pod-name>
+kubectl logs -f my-first-pod
+
+
+

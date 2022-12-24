@@ -1,0 +1,40 @@
+Connection refused" or "Connection timed out" errors when trying to connect to my EC2 instance with SSH--------------------
+
+The instance's IP address or hostname is correct.
+The instance is passing its health checks.
+The security group of the instance allows incoming traffic on TCP port 22.
+The network ACLs of instance subnet allows incoming traffic on TCP port 22 and allow ephemeral port for the outgoing traffic.
+The route table of the instance’s subnet is configured properly to provide connectivity between EC2 instance and the SSH client.
+There isn't a firewall blocking the connection between SSH client and the EC2 instance.
+SSH isn't blocked by TCP Wrappers in the instance.
+
+----------------------------------------
+
+Each time MyIp(Public IP) changes so always change my MyIp in security group while using MyIp to configure security group rules
+
+----------------------------------------
+curl http://169.254.169.254/latest/user-data --->For checking user-data status
+----------------------------------------
+Move pem file in .ssh folder as per standard
+
+ mv ~/Downloads/kube-demo.cer ~/.ssh
+---------------------------------------
+
+~/.aws/credentials
+-----------------------------
+When getting below error while creating EKS cluster
+
+2022-12-24 13:56:31 [✖]  creating CloudFormation stack "eksctl-eksdemo1-cluster": operation error CloudFormation: CreateStack, https response error StatusCode: 400, RequestID: 0b6fa355-8772-4dcd-afc1-283fcb4db6a8, AlreadyExistsException: Stack [eksctl-eksdemo1-cluster] already exists
+
+ For this check CloudFormation Stack and remove cluster if exist.
+-------------------------------------------
+The connection to the server localhost:8080 was refused - did you specify the right host or port?
+
+Might get due to EKS cluster not start 
+
+Configure kubeconfig for kubectl
+
+aws eks --region <region-code> update-kubeconfig --name <cluster_name>
+aws eks --region us-east-1 update-kubeconfig --name hr-stag-eksdemo1
+------------------------------------------------------------
+

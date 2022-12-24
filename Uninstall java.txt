@@ -1,0 +1,7 @@
+
+Java -version
+
+sudo rm -rf /Library/Java/JavaVirtualMachines/jdk-15.0.2.jdk
+sudo rm -rf /Library/PreferencePanes/JavaControlPanel.prefPane
+sudo rm -rf /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin
+sudo rm -rf ~/Library/Application\ Support/Oracle/Java

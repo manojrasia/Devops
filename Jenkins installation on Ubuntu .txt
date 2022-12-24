@@ -1,0 +1,40 @@
+#!/bin/bash # without 1st line cmd will not run in user data
+sudo apt update
+sudo apt install openjdk-11-jre -y #-y should be there in case of install for user data
+
+sudo apt install maven -y
+
+curl -fsSL https://pkg.jenkins.io/debian/jenkins.io.key | sudo tee \
+  /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+  https://pkg.jenkins.io/debian binary/ | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
+sudo apt-get update
+sudo apt-get install jenkins -y
+
+---------------
+systemctl status jenkins
+
+-------------------
+cd /var/lib/jenkins/ -->Jenkins Home directory
+
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword -->Get Jenkins Password
+
+sudo apt update
+sudo apt install openjdk-8-jdk -y
+
+In global Config Tool------------
+/usr/lib/jvm/java-1.8.0-openjdk-amd64---> mention this path in JAVA_HOME
+
+Automatically install maven
+-----------------------------
+
+Plugins---->
+
+Pipeline utility steps
+Pipeline Maven Integration
+
+
+
+
+

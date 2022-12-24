@@ -1,0 +1,5 @@
+https://codippa.com/installing-openjdk-from-tar-macos/
+
+tar -xf openjdk-15.0.1_osx-x64_bin.tar.gz
+
+sudo mv jdk-15.0.2.jdk /Library/Java/JavaVirtualMachines/
