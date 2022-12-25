@@ -1,0 +1,115 @@
+https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
+https://aws.amazon.com/premiumsupport/knowledge-center/amazon-eks-cluster-access/
+https://aws.amazon.com/premiumsupport/knowledge-center/eks-kubernetes-object-access-error/
+https://docs.aws.amazon.com/eks/latest/userguide/security_iam_id-based-policy-examples.html#policy_example3
+
+Your current user or role does not have access to Kubernetes objects on this EKS cluster" error in Amazon EKS
+————————————————————————————————————————————————————————————
+Create IAM role for user accessing EKS
+————————————————————
+Map the IAM users or roles to the RBAC roles and groups using aws-auth ConfigMap
+————————————————————————————————————————————————
+
+Create EKS cluster
+
+Create eksuser user and eksgroup  group and EKS related policy to eksgroup 
+
+Store AWS Access Key ID and AWS Secret Access Key of eksuser and select password to check login aws console as a eksuser
+
+Assign  full access EKS policy to group eksgroup 
+
+Download the manifest file:
+
+https://s3.us-west-2.amazonaws.com/amazon-eks/docs/eks-console-full-access.yaml
+
+Or use
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: eks-console-dashboard-full-access-clusterrole
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - namespaces
+  - pods
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  - statefulsets
+  - replicasets
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: eks-console-dashboard-full-access-binding
+subjects:
+- kind: Group
+  name: eks-console-dashboard-full-access-group
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: eks-console-dashboard-full-access-clusterrole
+  apiGroup: rbac.authorization.k8s.io
+
+kubectl apply -f eks-console-full-access.yaml
+
+——————————————————————
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
+data:
+  mapRoles: |
+    - rolearn: <ARN of instance role (not instance profile)>
+      username: system:node:{{EC2PrivateDNSName}}
+      groups:
+        - system:bootstrappers
+        - system:nodes
+  mapUsers: |
+    - userarn: arn:aws:iam::007740003734:user/eksuser
+      username:  eksuser
+      groups:
+        - system:masters     
+        - system:bootstrappers
+        - system:nodes
+        - eks-console-dashboard-full-access-group
+
+kubectl apply -f  aws-auth.yaml
+
+kubectl describe configmap -n kube-system aws-auth
+
+kubectl edit configmap aws-auth -n kube-system
+
+aws configure --profile manoj
+
+aws sts get-caller-identity
+
+Paste Access Key ID and AWS Secret Access Key of eksuser
+
+aws eks --region us-east-1 update-kubeconfig --name eksdemo1 --profile manoj
+
+kubectl auth can-i get pods
+kubectl auth can-i get secrets
+kubectl auth can-i get service
+

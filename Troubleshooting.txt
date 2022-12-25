@@ -32,9 +32,11 @@ The connection to the server localhost:8080 was refused - did you specify the ri
 
 Might get due to EKS cluster not start 
 
-Configure kubeconfig for kubectl
+Configure kubeconfig for kubectl in EKS
 
 aws eks --region <region-code> update-kubeconfig --name <cluster_name>
 aws eks --region us-east-1 update-kubeconfig --name hr-stag-eksdemo1
 ------------------------------------------------------------
+
+
 
