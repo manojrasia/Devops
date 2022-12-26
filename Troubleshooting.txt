@@ -35,21 +35,27 @@ Configure kubeconfig for kubectl in EKS
 aws eks --region <region-code> update-kubeconfig --name <cluster_name>
 aws eks --region us-east-1 update-kubeconfig --name hr-stag-eksdemo1
 ------------------------------------------------------------
+# Get current user configured in AWS CLI
 aws sts get-caller-identity
-
-To get identity of current user
 
 "UserId": "AIDAQDTKXCWLDLCAI52IJ",
     "Account": "007740003734",
     "Arn": "arn:aws:iam::007740003734:user/Manoj"
 
+# To list all configuration data
+aws configure list
+
+# To list all your profile names
+aws configure list-profiles
 ------------------------------------------------------------
  aws configure
 
 Configure access and secret key and region
 
 cat $HOME/.aws/credentials 
----------------------------------------
+
+cat $HOME/.aws/config ------------->show aws profiles
+-----------------------------------------------------------------------
 
 Before running terraform init cmd you must run aws configure cmd with right user credential other wise you will get access denied error like below 
 
@@ -57,3 +63,11 @@ Error refreshing state: AccessDenied: Access Denied in terraform
          Or
 error configuring S3 Backend: error validating provider credentials: error calling sts:GetCallerIdentity: InvalidClientTokenId: The security token included in the request is invalid.
 │       status code: 403, request id: 7a4b0f58-9f1d-4c48-b993-8f6b5a9389a1
+
+--------------------------------------------------------------------------
+
+
+      
+
+
+
