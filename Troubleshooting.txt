@@ -18,9 +18,7 @@ curl http://169.254.169.254/latest/user-data --->For checking user-data status
 Move pem file in .ssh folder as per standard
 
  mv ~/Downloads/kube-demo.cer ~/.ssh
----------------------------------------
 
-~/.aws/credentials
 -----------------------------
 When getting below error while creating EKS cluster
 
@@ -53,3 +51,6 @@ Configure access and secret key and region
 cat $HOME/.aws/credentials 
 ---------------------------------------
 
+Before running terraform init cmd you must run aws configure cmd with right user credential other wise you will get access denied error like below 
+
+Error refreshing state: AccessDenied: Access Denied in terraform
