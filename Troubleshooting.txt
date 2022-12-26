@@ -54,3 +54,6 @@ cat $HOME/.aws/credentials
 Before running terraform init cmd you must run aws configure cmd with right user credential other wise you will get access denied error like below 
 
 Error refreshing state: AccessDenied: Access Denied in terraform
+         Or
+error configuring S3 Backend: error validating provider credentials: error calling sts:GetCallerIdentity: InvalidClientTokenId: The security token included in the request is invalid.
+│       status code: 403, request id: 7a4b0f58-9f1d-4c48-b993-8f6b5a9389a1
