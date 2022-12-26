@@ -37,6 +37,19 @@ Configure kubeconfig for kubectl in EKS
 aws eks --region <region-code> update-kubeconfig --name <cluster_name>
 aws eks --region us-east-1 update-kubeconfig --name hr-stag-eksdemo1
 ------------------------------------------------------------
+aws sts get-caller-identity
 
+To get identity of current user
 
+"UserId": "AIDAQDTKXCWLDLCAI52IJ",
+    "Account": "007740003734",
+    "Arn": "arn:aws:iam::007740003734:user/Manoj"
+
+------------------------------------------------------------
+ aws configure
+
+Configure access and secret key and region
+
+cat $HOME/.aws/credentials 
+---------------------------------------
 
