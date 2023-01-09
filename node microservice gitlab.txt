@@ -1,0 +1,17 @@
+sudo apt-get update
+
+sudo apt install nodejs
+node -v
+
+sudo apt install npm
+npm -v
+
+sudo apt install docker.io
+
+docker ps
+
+sudo usermod -aG docker ubuntu
+sudo usermod -aG docker gitlab-runner
+
+sudo apt install docker-compose
+

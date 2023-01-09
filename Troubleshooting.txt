@@ -66,6 +66,16 @@ error configuring S3 Backend: error validating provider credentials: error calli
 
 --------------------------------------------------------------------------
 
+Docker: Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock
+
+
+sudo groupadd docker
+
+sudo usermod -aG docker $USER
+
+https://linuxhandbook.com/docker-permission-denied/
+https://stackoverflow.com/questions/47854463/docker-got-permission-denied-while-trying-to-connect-to-the-docker-daemon-socke
+
 
       
 
