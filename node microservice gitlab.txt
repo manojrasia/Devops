@@ -9,13 +9,6 @@ npm -v
 sudo apt install docker.io
 sudo apt install jq
 
-if not download shell executor from below source u will get shell executor error
-
-https://docs.gitlab.com/runner/install/linux-repository.html
-
-curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | sudo bash
-
-sudo apt-get install gitlab-runner
 
 docker ps
 
@@ -25,6 +18,50 @@ sudo usermod -aG docker gitlab-runner
 
 sudo apt install docker-compose
 
+
+---------------------------
+if not download shell executor from below source u will get shell executor error
+ERROR: Job failed: prepare environment: exit status 1
+
+Mitigation--
+
+1) use official doc for ubuntu to install runner
+
+https://docs.gitlab.com/runner/install/linux-repository.html
+
+curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | sudo bash
+
+sudo apt-get install gitlab-runner
+
+2)
+
+https://stackoverflow.com/questions/63154881/the-runner-of-type-shell-dont-work-job-failed-system-failure-preparing-envi
+
+sudo rm /home/gitlab-runner/.bash_logout
+
+
+
+gitlab-runner list
+
+sudo gitlab-runner verify --delete --url $YOUR_GITLAB_DOMAIN --token $YOUR_GITLAB_RUNNER_TOKEN
+
+
+## Register a docker runner
+  
+  sudo gitlab-runner register \
+  --non-interactive \
+  --url "https://$YOUR_GITLAB_DOMAIN" \
+  --registration-token "$YOUR_GITLAB_REGISTRATION_TOKEN" \
+  --executor "docker" \
+  --docker-image docker:stable \
+  --description "docker-runner-1" \
+  --tag-list "docker, ci" \
+  --run-untagged \
+  --locked="false" \
+  --docker-privileged \
+  --docker-volumes "/var/run/docker.sock:/var/run/docker.sock" \
+  --docker-volumes "/cache" \
+  --docker-extra-hosts "$YOUR_GITLAB_DOMAIN:$YOUR_GITLAB_IP" \
 
 
 heads up
