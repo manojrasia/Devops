@@ -39,7 +39,7 @@ https://stackoverflow.com/questions/63154881/the-runner-of-type-shell-dont-work-
 
 sudo rm /home/gitlab-runner/.bash_logout
 
-
+---------------------------------------------
 
 gitlab-runner list
 
