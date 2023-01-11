@@ -7,11 +7,29 @@ sudo apt install npm
 npm -v
 
 sudo apt install docker.io
+sudo apt install jq
+
+if not download shell executor from below source u will get shell executor error
+
+https://docs.gitlab.com/runner/install/linux-repository.html
+
+curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | sudo bash
+
+sudo apt-get install gitlab-runner
 
 docker ps
 
 sudo usermod -aG docker ubuntu
 sudo usermod -aG docker gitlab-runner
 
+
 sudo apt install docker-compose
+
+
+
+heads up
+
+qualms
+
+candid
 
