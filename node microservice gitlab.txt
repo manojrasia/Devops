@@ -64,9 +64,23 @@ sudo gitlab-runner verify --delete --url $YOUR_GITLAB_DOMAIN --token $YOUR_GITLA
   --docker-extra-hosts "$YOUR_GITLAB_DOMAIN:$YOUR_GITLAB_IP" \
 
 
-heads up
+-----
+Install kubectl 
 
-qualms
+sudo apt-get install -y ca-certificates curl
+sudo curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo apt-get update
+sudo apt-get install -y kubectl
 
-candid
+----------------------
+Install was-cli
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+sudo apt install unzip
+unzip awscliv2.zip
+
+
+
+
 
