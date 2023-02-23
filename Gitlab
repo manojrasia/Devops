@@ -4,7 +4,7 @@ sast error:
 [ERRO] [Semgrep] [2023-02-21T12:44:43Z] ▶ Analyzer has exited with error: 'tool notification error: SemgrepError Error while running rules: 0 bytes read on a total of 2 expected bytes'. To debug, set 'SECURE_LOG_LEVEL' CI variable to "debug". See https://docs.gitlab.com/ee/user/application_security/#secure-job-failing-with-exit-code-1 for more details.
 [FATA] [Semgrep] [2023-02-21T12:44:43Z] ▶ tool notification error: SemgrepError Error while running rules: 0 bytes read on a total of 2 expected bytes
 
-resolution:  change image variable
+resolution:  change image variable or go through link https://gitlab.com/gitlab-org/gitlab/-/issues/344546
 
 include:
   - template: Security/SAST.gitlab-ci.yml
