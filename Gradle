@@ -1,1 +1,5 @@
 org.barfuin.gradle.jacocolog---->Logs JaCoCo test coverage to the Gradle build log
+
+Declaring repositories in gradle----> https://docs.gradle.org/current/userguide/declaring_repositories.html#sec:authentication_schemes
+
+username System.getenv("ARTIFACTORY_USERNAME")----method gets the value of the specified environment variable.
