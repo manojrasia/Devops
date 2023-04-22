@@ -1,0 +1,333 @@
+whoami
+id -un
+
+sudo su -
+useradd automation
+passwd automation
+chown -R automation:automation /home/automation
+echo $SHELL
+chsh
+cat /etc/shells
+bash demo.sh -----> run without giving x permission
+man pwd
+whatis pwd
+systemctl status docker
+
+output redirection operator--->
+
+ > to create new file
+ >> to append content
+
+Input redirection operator-->
+
+<  to provide input
+
+A file descriptors is an integer no. to identify STDIN, STDOUT, STDERR
+
+0:STDIN
+1:STDOUT
+2:STDERR
+
+asdff  1>succ.txt 2>err.txt --> success result will store in succ.txt and error result will store in err.txt
+java -version 1>jav_ver.txt 2>jav_ver.txt --> storing success and error result in same file
+java -version 1>jav_ver.txt  2>&1  -->shortcut of above
+java -version &>jav_ver.txt  -->shortcut of above
+
+java -version 2>&1 | grep -E "version" | cut -d ' ' -f3 | tr -d '"' 
+which docker 2>&1 1>/dev/null && docker -version
+httpd -v | awk -F '[ /]' ' /version/ {print $4}'
+httpd -v | awk -F '[ /]' ' NR==1 { print $4}' 
+awk  ' {print NR,$1,$3}'  demo.txt
+awk  ' {print $NF}'  demo.txt
+
+
+awk scripting--------------->
+awk -f myawk.awk /etc/passwd
+
+myawk.awk
+
+BEGIN {
+
+print "============working on /etc/passwd file=============="
+}
+
+/root/  {
+print $0
+}
+END{
+print "============completed work on /etc/passwd file=============="
+
+}
+
+awk 'BEGIN { a=5 ; print a}'
+
+
+
+
+NR=========no. of records/lines
+tr '[:lower:]' '[:upper:]' <xyz.txt
+tr 'i' 'I' <xyz.txt
+tr 'i' '_' <xyz.txt
+tr " " "_" <xyz.txt
+
+<<< Here string
+
+tr '[a-z]'  '[A-Z]'  <<< "Hello this is manoj"
+tr '[a-z]'  '[A-Z]'  <<< $(docker -v)
+
+name="BASH SHELL"
+tr "[A-Z]" "[a-z]" <<<$name      
+
+MultiLine Block or HereDocument---------->mlb.sh
+
+cat << EOF | grep Line 1
+Line 1
+Line 2
+Line 3
+EOF
+
+which env
+#!/usr/bin/env bash --> shebang line
+
+debugging--> in script
+
+set -n -->debug syntax
+set -x -->cmd execute line by line
+set -e -->check runtime error and stop script
+set -v
+
+bash -x m.sh
+
+
+Exit status of cmd:---->
+
+
+ls -lrta
+echo $?
+
+mj=$?
+echo $mj
+
+String operation--->
+
+echo $x
+echo "$x"
+echo "${x}"
+
+x=manoj
+s=${#x}--->string length
+s=$x$y--->concat
+s=${x^^}-->upper case
+s=${x,,}-->lower case
+s=${x:2:3}-->slicing
+
+arrays--->
+
+x=(3 5 "ls -lrta")
+echo "${x}"--> print index 0 value
+echo "${x[*]}"-->print all array value
+echo "${x[@]}"-->print all array value
+echo "${x[2]}"--->print 2nd index value
+echo  "${x[-1]}"--->print last index value
+echo  "${x[@]:1:2}"--->print only index 1 and 2 values from theres(slicing)
+echo "${!x[@]}"-->print index values of array
+echo "${#x[@]}"-->how many values in array
+newarray[4]=bash
+newarray[9]=scripting
+echo "${!newarray[@]}"
+p=([2]=two [3]=bash [8]=scripting)
+echo "${p[@]}"
+
+storing o/p of a cmd in array---->
+
+arraywthcmd=( $(date) )
+echo "${arraywthcmd[@]}"
+unset arraywthcmd -->delete an array
+arraywthcmd+=(4 5 6)
+read -a var
+
+
+String operations on path--->
+
+realpath demo.sh
+basename --> strips dir info or strips suffix from file names
+dirname
+
+
+cmd-line-arg.sh
+
+#!/usr/bin/bash
+<< mycom
+echo "$0" -->represent shell script
+echo "$1". -->cmdline arg 1
+echo "$2" --> cmdline arg 2
+echo "$3"
+echo "${10}"
+mycom
+echo "The number command line arguments: $#"
+echo "All command line arguments are: $*"
+echo "All command line arguments are: $@"--->always preferred
+
+comparison operator with test cmds:-
+
+test 4 -eq 4
+echo $?
+[[ 4 -eq 43 ]]
+echo $?
+
+strings
+
+[[ -z str ]]
+[[ -n str ]]
+
+
+cmd chaining--->
+
+which docker 2>&1 1>/dev/null && docker -v
+--> 2>&1--> redirecting error in std o/p place --> 1>/dev/null std o/p nullify
+which docker 2>&1 1>/dev/null;docker -v
+
+Executing block of code using {}
+
+which apache2 2>&1 1>/dev/null && { echo "apache is installed" ; echo "apache version info is : $(apache2 -v)" ;} || echo "apache is not installed"
+
+
+ssh------------->
+
+vi /etc/ssh/sshd_config ( Make it :PasswordAuthentication yes)
+
+passwordless auth------->
+
+ssh-keygen
+cd .ssh  ---> ssh-copy-id testuser@ip
+cat .ssh/authorized_keys
+
+sshpass----> is a non-interactive ssh pass authentication
+yum install sshpass
+sshpass -p "password" ssh -t  -o StrictHostKeychecking=No automation@ip "date"
+
+mulit cmd on multi ser .sh
+
+--------------------------------------
+for each_ser in $(cat remote_servers.txt)
+do
+  echo "Executing cmds on $each_ser"
+  echo "============================" 
+  for each_cmd in date uptime "free -m"
+  do
+    echo "The $each_md command output on the server: $each_ser"
+    #sshpass -f pass ssh -o StrictHostKeyChecking=No automation@$each_ser "$each_cmd"
+    ssh -o StrictHostKeyChecking=No automation@$each_ser "$each_cmd"
+    echo "-------------------------------------------------------"
+  done
+
+done
+------------------------------------------------------
+while loop--------------->
+
+execute_different_cmds_on_different_servers_with_differnt_users_and_passwords
+
+servers_info.txt
+----------------
+18.212.27.210  automation automation@123 date
+18.212.185.2   tomcat tomcat123 whoami
+
+execute_different_cmds_on_different_servers_with_differnt_users_and_passwords.sh
+--------------------------------------------------------------------------------
+#!/bin/bash
+while read ser user pass cmd1 cmd2
+do
+  echo "Executing $cmd1 on $ser with user as $user and password $pass"
+  sshpass -p $pass ssh -n -o StrictHostKeyChecking=No $user@$ser "$cmd1" 
+  echo "Executing $cmd2 on $ser with user as $user and password $pass"
+  sshpass -p $pass ssh -n -o StrictHostKeyChecking=No $user@$ser "$cmd2"
+  echo "---------------------------------------------------------"
+done < servers_info.txt
+--------------------------------------------------------------------------
+reading cmd o/p 
+
+cmd | while read line
+do
+   stmts/cmds
+done
+--------------------------------------------------------------------------
+while with IFS (Internal Field Seperator)
+
+cmd | while IFS="," read field1 field2 field2
+do
+    stmts/cmds
+done
+
+------------------------------------------------------------------
+Functions------------->
+
+fun.sh
+
+#!/bin/bash
+
+addition()
+{
+  #echo "The \$0 value is: $0"
+  m=$1
+  n=$2
+  result=$((m+n))
+  echo "The addition of $m and $n is: $result"
+
+}
+
+
+x=6
+y=2
+addition $x $y
+
+p=3
+q=7
+addition $p $q
+
+addition 4 9
+
+------------------------------------------
+printf---------->
+
+tput cols
+tput lines
+
+x=2
+y=5.904847
+my_name="shell scripting"
+printf  "%s  %d  %f\n"  "$my_name" "$x" "$y"
+printf  "my_name= %s   my num= %d  my_float= %f\n"  "$my_name" "$x" "$y" 
+printf "%05d\n" "$x" 
+printf "%0.3f\n" "$y" 
+
+
+SED------>
+
+sed '' file.txt
+sed 'p' file.txt
+sed -n '$p' file.txt. --> print last line 
+sed -n '9p'  file.txt -->print nineth line
+sed -n '3,10p' file.txt -->print range of line
+sed -n '12,+7' file.txt -->print from line 12 to +7 line
+sed -n  '1~3p' file.txt ---> print line with 3 diff
+sed -n '1~2p' file.txt-->print alternate line
+sed -n  '49d' file.txt--> remove 49th line and print all line
+sed -n '4,$d' file.txt--> remove 4th to last line and print remaining
+
+
+
+
+https://github.com/HariSekhon/DevOps-Bash-tools
+
+
+
+ jq is a command-line tool for parsing and manipulating JSON data
+
+
+ Grep is a filter command, it is used to search a string in a given file.  Simple grep command syntax:  grep [options] “string/pattern” file/files  cat file | grep [options] “string/pattern”  echo “some text” | grep [options] “string/pattern”
+
+
+
+Hi Team,
+
+I will stay away due to some personal work , i will join around 4pm IST
