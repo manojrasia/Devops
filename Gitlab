@@ -20,3 +20,6 @@ sast:
     reports:
       sast: gl-sast-report.json
 
+To enable code coverage badge check--->https://gitlab.com/barfuin/gradle-jacoco-log
+
+it is a plugin for gradle/maven org.barfuin.gradle.jacocolog which do it outof the box
