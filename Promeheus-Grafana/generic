@@ -1,0 +1,75 @@
+
+helm install grafana grafana/grafana -n monitoring
+
+helm uninstall grafana -n monitoring
+
+export POD_NAME=$(kubectl get pods --namespace prometheus -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=grafana" -o jsonpath="{.items[0].metadata.name}")
+
+kubectl --namespace monitoring port-forward $POD_NAME 3000
+
+helm install prometheus prometheus-community/prometheus -n monitoring --set prometheus-node-exporter.hostRootFsMount.enabled=false   ---------> work for test env
+
+kubectl port-forward service/prometheus-server -n monitoring 9090:80
+
+helm uninstall prometheus -n monitoring
+
+kubectl get PrometheusRule -n monitoring 
+
+helm show values prometheus-community/prometheus
+
+Converting docker cmd to kubectl (CPU stress tool)
+--------------------------------------------------------------------------
+
+docker run -it --name cpustress --rm containerstack/cpustress --cpu 4 --timeout 30s --metrics-brief
+kubectl run cpustress-test --image=containerstack/cpustress -- --cpu 4 --timeout 30s --metrics-brief
+
+Main-----> always careful about labels while defining custom alert rules otherwise it will not show in prometheus UI check PrometheusRule configs to set labels and check servicemonitor prometheusrule labels
+
+Install kube-prometheus-stack
+--------------------------------------------
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install  prometheus prometheus-community/kube-prometheus-stack -n monitoring
+kubectl get secret -n monitoring
+kubectl get secret --namespace monitoring prometheus-grafana  -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+kubectl -n monitoring port-forward service/prometheus-grafana 3000:80
+kubectl -n monitoring port-forward service/prometheus-kube-prometheus-prometheus  9090:9090
+kubectl logs prometheus-prometheus-kube-prometheus-prometheus-0   -n monitoring -c prometheus --->To check alert logs
+kubectl logs prometheus-prometheus-kube-prometheus-prometheus-0   -n monitoring -c config-reloader --->To check alert logs
+kubectl describe PrometheusRule prometheus-kube-prometheus-etcd  -n monitoring
+kubectl get prometheusrule prometheus-kube-prometheus-etcd   -n monitoring -o jsonpath="{.metadata.labels}"  
+
+
+Monitor redis app(Third party app)
+-------------------------------------------------
+
+helm install redis  prometheus-community/prometheus-redis-exporter -f redis-values.yaml  ---> will create redis-exporter pod and servicemonitor
+
+redis-values.yaml     
+
+serviceMonitor:
+  enabled: true
+  labels:
+    release: prometheus
+redisAddress: redis://redis-cart:6379
+
+redis-cart----> is a redis service configured
+note---> if redisAddress: redis://redis-cart:6379 is indented wrongly u will get less metrics 
+
+
+Configure AlertManager---->To send alerts to mail clients based on route , receivers
+
+kubectl get alertmanagerconfig -n monitoring
+
+
+
+otherwise will give error --->Error: failed to start container "node-exporter": Error response from daemon: path / is mounted on / but it is not a shared or slave mount
+
+data source configured --->http://host.docker.internal:9090--> in case docker desktop--->we generally use service as a data source path
+
+ --set grafana.adminPassword=secret
+
+http://127.0.0.1:9090/metrics
+http://127.0.0.1:9093/api/v1/alerts
+
