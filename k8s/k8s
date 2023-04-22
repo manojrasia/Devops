@@ -1,0 +1,74 @@
+Configuring kubeconfig file
+
+vi kubeconfig.yaml  
+export KUBECONFIG=$PWD/kubeconfig.yaml
+
+Or
+
+mkdir .kube  
+cp /Users/manojchaurasia/Downloads/kube-config.yml .kube/config
+cat $HOME/.kube/config  
+
+kubectl get pods --namespace=<namespace>
+kubectl get deployment --namespace=<namespace>
+kubectl describe pod <podname>    -n <namespace>
+kubectl get poddisruptionbudgets  <poddisruptionbudgetname>  -n <namespace> -o yaml > pdb.yaml
+
+kubectl logs <podname> -c <containername> -n otbl-dev
+kubectl describe deployment <deployment-name> -n otbl-dev
+
+
+kubectl get hpa -n <namespace>
+kubectl get hpa <hpa-name> --watch -n <namespace>
+kubectl describe hpa  <hpa-name> -n <namespace>
+
+kubectl top pod --namespace=<namespace>
+kubectl describe svc frontend
+kubectl get servicemonitor  -n otbl-dev 
+kubectl describe servicemonitor   <service-monitor-name> -n <namespace>
+kubectl get svc -n <namespace>
+kubectl get events
+
+To check if readiness and liveness probe working---->
+
+https://ingresshosturl/actuator/health/readiness---> check readiness and liveness probe via ingress
+https://ingresshosturl/actuator/health/liveness---> 
+
+
+To check if prometheus service monitor working on actuator/prometheus endpoint----->
+
+https://ingresshosturl/actuator/prometheus
+
+curl https://ingresshosturl/actuator/prometheus
+
+servicemonitor error --->
+
+application---->fallback error while accesing  /acutator/prometheus endpoint-->
+resolution change in application.yaml
+
+application---->getting erorr ServiceMonitor "service-monitor-name" in namespace "" exists and cannot be imported into the current release: invalid ownership metadata; label validation error: missing key "app.kubernetes.io/managed-by": must be set to "Helm"; annotation validation error: missing key "meta.helm.sh/release-name": must be set to "app-helm"; annotation validation error: missing key "meta.helm.sh/release-namespace": must be set to "namespace"--> 
+resolution delete servicemonitor
+
+kubectl delete servicemonitor service-monitorname -n namespace
+
+
+
+
+Helm
+
+helm rollback <release> <revision> --namespace <namespace>
+helm rollback mock-service-helm  1 -n otbl-dev
+helm history mock-service-helm -n otbl-dev
+helm list -n otbl-dev
+helm get manifest  o3-med-bvgk-helm  -n otbl-dev
+
+--atomic               if set, the installation process deletes the installation on failure. The --wait flag will be set automatically if --atomic is used
+
+For spring boot application 
+
+We have to update application.yml file for prometheus service monitoring and readiness and liveness probe and also for tracing configuration add metrics 
+
+metrics:    tags:      application: app-name      stack: dev
+
+killall Google\ Chrome ----------
+
