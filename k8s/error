@@ -1,0 +1,10 @@
+
+In general fsGroup should be written in Deployment.spec.template.spec.securityContext.fsGroup--> (scope should be pod not container )otherwise it will give below errors 
+
+https://github.com/Azure/AKS/issues/1751
+
+r(Deployment.spec.template.spec): unknown field "fsGroup" in io.k8s.api.core.v1.PodSpec, ValidationError(Deployment.spec.template.spec): unknown field "supplementalGroups" in io.k8s.api.core.v1.PodSpec];----->here getting error due to indentation
+
+error: error validating "STDIN": error validating data: ValidationError(Deployment.spec): unknown field "securityContext" in io.k8s.api.apps.v1.DeploymentSpec; if you choose to ignore these errors, turn validation off with --validate=false
+
+error: error validating "STDIN": error validating data: [ValidationError(Deployment.spec.template.spec.containers[0].securityContext): unknown field "fsGroup" in io.k8s.api.core.v1.SecurityContext, ValidationError(Deployment.spec.template.spec.containers[1].securityContext): unknown field "fsGroup" in io.k8s.api.core.v1.SecurityContext, ValidationError(Deployment.spec.template.spec.initContainers[0].securityContext): unknown field "fsGroup" in io.k8s.api.core.v1.SecurityContext];
