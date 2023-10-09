@@ -1,0 +1,56 @@
+git clone https://username:pat-token@gitlabcloneurl----> to clone gitlab repo without giving again credentials
+
+git clone https://manojrasia:glpat-LyxdSb_syiyvjefnFB1h@gitlab.com/gitlab-de/use-cases/gitlab-api/gitlab-api-python.git
+
+echo "# jk" >> README.md
+git init
+
+clone the code from one repository and make code available to another repository 
+
+change rootproject name in settings.gradle, change app name in src/main/resources/application.yml,
+change variables app name in .gitlab-ci.yml
+
+git config --list
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
+git clone --branch <branchname> <remote-repo-url>
+git remote set-url origin git://new.url.here
+git remote remove origin                 origin-->is remote name
+git remote add <remote_name> <destination_repository_url>
+git remote -v 
+git push <remote_name>  <branch_name>
+ git push --set-upstream <remoteurlname> branch
+
+
+Following command will discard all the changes you made in the working directory.
+
+ git reset --hard HEAD 
+
+
+git push -u origin main
+.git/config
+
+verifled commits:-
+https://docs.gitlab.com/ee/user/project/repository/signed_commits/gpg.html
+
+
+ git checkout -b TestDevops 
+ git checkout TestDevops
+ git branch -a
+ git pull
+
+
+Git Rebase
+
+The second way of combining work between branches is rebasing. Rebasing essentially takes a set of commits, "copies" them, and plops them down somewhere else.
+
+While this sounds confusing, the advantage of rebasing is that it can be used to make a nice linear sequence of commits. The commit log / history of the repository will be a lot cleaner if only rebasing is allowed.
+
+ git checkout bugFix 
+ git rebase main
+
+
+git checkout branchname
+git log --oneline
+git revert 5a55a66
+git push
