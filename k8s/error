@@ -8,3 +8,19 @@ r(Deployment.spec.template.spec): unknown field "fsGroup" in io.k8s.api.core.v1.
 error: error validating "STDIN": error validating data: ValidationError(Deployment.spec): unknown field "securityContext" in io.k8s.api.apps.v1.DeploymentSpec; if you choose to ignore these errors, turn validation off with --validate=false
 
 error: error validating "STDIN": error validating data: [ValidationError(Deployment.spec.template.spec.containers[0].securityContext): unknown field "fsGroup" in io.k8s.api.core.v1.SecurityContext, ValidationError(Deployment.spec.template.spec.containers[1].securityContext): unknown field "fsGroup" in io.k8s.api.core.v1.SecurityContext, ValidationError(Deployment.spec.template.spec.initContainers[0].securityContext): unknown field "fsGroup" in io.k8s.api.core.v1.SecurityContext]
+
+For springboot application service.yaml, resources/application.yml,ingress.yml port should be same  
+otherwise get service timporary available and 502 Bad Gateway
+
+
+-service is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply. kubectl apply should only be used on resources created declaratively by either kubectl create --save-config or kubectl apply. The missing annotation will be patched automaticall------------> It means delete existing config (eg helm app)
+
+------------------
+
+ k port-forward pgadmin -n pgadmin 8080:80 Unable to listen on port 8080: Listeners failed to create with the following errors: [unable to create listener: Error listen tcp4 127.0.0.1:8080: bind: address already in use unable to create listener: Error listen tcp6 [::1]:8080: bind: address already in use] error: unable to listen on any of the requested ports: [{8080 80}]
+
+lsof -i :8080
+
+kill -9 12345
+
+https://blog.serialexperiments.co.uk/posts/kubernetes-port-forward-already-in-use/
