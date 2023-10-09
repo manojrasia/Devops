@@ -3,3 +3,22 @@ org.barfuin.gradle.jacocolog---->Logs JaCoCo test coverage to the Gradle build l
 Declaring repositories in gradle----> https://docs.gradle.org/current/userguide/declaring_repositories.html#sec:authentication_schemes
 
 username System.getenv("ARTIFACTORY_USERNAME")----method gets the value of the specified environment variable.
+
+implementation "net.logstash.logback:logstash-logback-encoder" The Logstash Logback encoder is a Logback encoder that formats log events in a way that is compatible with Logstash add the dependency to your build.gradle file, and then configure your logback-spring.xml file to use the encoder
+
+ implementation "io.micrometer:micrometer-registry-prometheus"
+
+jib----> to select one mail class
+container.mainClass = "WebAppKt"
+
+Intellij IDEA-------->
+
+Set env variables---> basically check variables define in settings.gradle or build.gradle
+java -jar -Dspring.profiles.active=local build/libs/jarfile
+
+dependencyInsight added ---------->
+
+- gradle -q dependencies    
+-gradle -q dependencyInsight --configuration compileClasspath --dependency com.fasterxml.jackson:jackson-bom
+
+
