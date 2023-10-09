@@ -1,0 +1,8 @@
+https://medium.com/miro-engineering/prometheus-high-availability-and-fault-tolerance-strategy-long-term-storage-with-victoriametrics-82f6f3f0409e
+
+https://itnext.io/victoriametrics-an-overview-and-its-use-instead-of-prometheus-dbdb231a025
+
+Victoria Metrics Agent - collects metrics from various sources and stores them to VictoriaMetrics
+https://github.com/VictoriaMetrics/helm-charts/blob/master/charts/victoria-metrics-agent/README.md
+
+vmagent: deals with collecting metrics from various sources, such as Prometheus exporters, filtering and relabeling them, and storing them in a data store (in the VictoriaMetrics instance itself or via the remote_write Prometheus protocol)
