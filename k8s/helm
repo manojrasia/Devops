@@ -1,0 +1,33 @@
+helm create <chartname>
+helm install <rleasename> <chartpath>
+helm install firstapp firstchart
+ 
+helm uninstall --namespace=<namespace> <releasename> 
+
+helm get all <rleasename> -n redis----> download all information for a named release
+
+Helm
+
+helm rollback <release> <revision> --namespace <namespace>
+helm rollback <rleasename>  1 -n <namespace>
+helm history <rleasename> -n <namespace>
+helm list -n <namespace>--->list releases
+helm get manifest  <rleasename>  -n <namespace>
+helm dependency build
+helm repo list
+helm ls
+
+helm status redis-cache -n <namespace>
+
+helm get all <rleasename> -n redis----> download all information for a named release
+
+
+helm repo add komodorio https://helm-charts.komodor.io
+helm repo update 
+helm search repo <chart-name>
+helm pull komodorio/helm-dashboard
+tar xzf helm-dashboard-0.1.10.tgz
+
+helm install my-release oci://registry-1.docker.io/bitnamicharts/keycloak -n keycloak 
+
+--atomic               if set, the installation process deletes the installation on failure. The --wait flag will be set automatically if --atomic is used
