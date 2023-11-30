@@ -213,6 +213,12 @@ https://stackoverflow.com/questions/54629660/kubernetes-how-do-i-delete-pv-in-th
 
 kubectl delete pv <pv_name> --grace-period=0 --force
 kubectl patch pv <pv_name> -p '{"metadata": {"finalizers": null}}'
+-------------------------
+mkdir -p kubernetes
+- if [ -f k8s/ingress.yml  ]; then envsubst "$(printf '${%s} ' $(env | cut -d'=' -f1))" < k8s/ingress.yml > kubernetes/ingress.yml; fi;
+
+Here k8s if folder and ingress.yml if file in it We replacing all the env variables available in ingress.yml with actual value using envsubst
+
 
 
 
