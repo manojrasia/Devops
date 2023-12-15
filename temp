@@ -1,0 +1,341 @@
+variables:
+  KUBERNETES_RUNNER: k8srunner
+  DOCKER_REGISTRY_ADDRESS: dockerhub.com
+  DOCKER_REGISTRY_NAMESPACE: manoj
+  IMAGE_REPO: "$DOCKER_REGISTRY_ADDRESS/$DOCKER_REGISTRY_NAMESPACE/$APP_NAME"
+  IMAGE_PULL_SECRET_NAME: pullsecret
+  MEMORY_REQUEST: 300Mi
+  MEMORY_LIMIT: 2000Mi
+  CPU_REQUEST: 200m
+  CPU_LIMIT: 2000m
+  FAIL_WHEN_COSIGN_VERIFICATION_FAILED_VALUE: "true"
+  CONFLUENCE_GROUP_ID: 497560533
+
+# Pre-define Runner and retry on known failures
+default:
+  tags:
+    - $KUBERNETES_RUNNER
+  retry:
+    max: 2
+    when:
+      - unknown_failure
+      - runner_system_failure
+      - api_failure
+      - scheduler_failure
+      - data_integrity_failure 
+
+# Transfer README to Confluence
+.transfer-readme:
+  image: gitlab.com/gitlab-api:1
+  allow_failure: true
+  script:
+    - python3 /src/gitlab_api -e transfer_md -p $CI_PROJECT_ID -f README.md -t $CONFLUENCE_GROUP_ID
+  only:
+    refs:
+      - master
+      - main
+    changes:
+      - README.md
+
+# Quality Report of Code is automatically being published in Pages section of GitLab Project
+.pages:
+  script:
+    - mkdir public
+    - mv gl-code-quality-report.html public/index.html
+  artifacts:
+    expire_in: '2 weeks'
+    paths:
+      - public
+    when: always
+  allow_failure: true
+  only:
+    refs:
+      - master
+      - main
+
+
+# Pre-define arguments & variables for later gradle job
+.prepare_gradle: &prepare_gradle
+  - export GRADLE_SUFFIX="--no-daemon --build-cache -s --console=plain"
+  - export GRADLE_USER_HOME="$(pwd)/.gradle"
+  - export GROOVY_TURN_OFF_JAVA_WARNINGS=true
+
+# Define image for gradle jobs & cache build/.gradle-folder
+.gradle_job_template:
+  image: gradle:7-zuluopenjdk17
+  before_script:
+    - *prepare_gradle
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - build
+      - .gradle
+
+.gradle_job_template_without_cache:
+  image: gradle:7-zuluopenjdk17
+  before_script:
+    - *prepare_gradle
+
+# Builds and runs unit-tests with code coverage (extracted from jacocoTestReport)
+.unit-test:
+  extends: .gradle_job_template
+  script:
+    - gradle build $GRADLE_SUFFIX
+    - awk -F, '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' build/reports/jacoco/test/jacocoTestReport.csv
+  coverage: '/\d{0,3}\.?\d{0,9} % covered/'
+  artifacts:
+    when: always
+    paths:
+      - build/reports/jacoco/test/jacocoTestReport.xml
+    reports:
+      junit: 
+        - build/test-junit-xml/TEST-*.xml
+
+# Builds without cache and runs unit-tests with code coverage
+.unit-test-without-cache:
+  extends: .gradle_job_template_without_cache
+  script:
+    - gradle build --no-daemon --no-build-cache -s --console=plain
+    - awk -F, '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' build/reports/jacoco/test/jacocoTestReport.csv
+  coverage: '/\d{0,3}\.?\d{0,9} % covered/'
+  artifacts:
+    when: always
+    paths:
+      - build/reports/jacoco/test/jacocoTestReport.xml
+    reports:
+      junit: 
+        - build/test-junit-xml/TEST-*.xml
+
+# Like "unit-test" but logging-level=debug
+.unit-test-debug:
+  extends: .gradle_job_template
+  script:
+    - gradle build --debug --no-daemon --no-build-cache -s --console=plain
+    - awk -F, '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' build/reports/jacoco/test/jacocoTestReport.csv
+  coverage: '/\d{0,3}\.?\d{0,9} % covered/'
+  artifacts:
+    when: always
+    paths:
+      - build/reports/jacoco/test/jacocoTestReport.xml
+    reports:
+      junit: 
+        - build/test-junit-xml/TEST-*.xml
+    # Showing details of JUnit Test Results in separate GitLab Pipeline Tab
+    # Provides test summary (successful/failed tests) in Merge Request
+
+# Separate job to calculate code coverage, that uses cobertura
+.coverage:
+  image: registry.gitlab.com/haynes/jacoco2cobertura:1.0.7
+  script:
+    - mkdir -p build/reports/jacoco/test
+    - python /opt/cover2cover.py build/reports/jacoco/test/jacocoTestReport.xml $CI_PROJECT_DIR/src/main/java/ > build/reports/jacoco/test/cobertura.xml
+  needs: ["unit-test"]
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: build/reports/jacoco/test/cobertura.xml
+    # Shows in GitLab which Lines are covered by "coverage" (green ones)
+
+# Create Automatic Release Notes (Merged MRs)
+.gitlab-release-docs:
+  image: dockerhub/manoj/release-note-generator
+  script:
+    - python3 /home/cloud/gitlab_release_notes_generator.py > ReleaseNotes.md
+  artifacts:
+    paths:
+      - ./ReleaseNotes.md
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+  environment:
+    name: adcloverlaypom
+
+# Duplicate to below job
+.gitlab-release:
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+  script:
+    - RELEASE_NOTES="$(cat ./ReleaseNotes.md)"
+    - echo $RELEASE_NOTES
+  release:
+    name: 'Release $CI_COMMIT_TAG'
+    description: './ReleaseNotes.md'
+    tag_name: '$CI_COMMIT_TAG'
+    ref: '$CI_COMMIT_TAG'
+
+.package:snapshot:
+  extends: .gradle_job_template
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH =~ /^feature/ || $CI_COMMIT_BRANCH =~ /^task/ || $CI_COMMIT_BRANCH =~ /^bug/
+  script:
+    - export IMAGE_TAG=$(gradle cV -q -Prelease.quiet)-$CI_PIPELINE_ID
+    - export IMAGE_FQDN=$IMAGE_REPO:$IMAGE_TAG
+    - echo IMAGE_TAG=$IMAGE_TAG >> package.env
+    - echo IMAGE_FQDN=$IMAGE_FQDN >> package.env
+    - gradle jib $GRADLE_SUFFIX
+  artifacts:
+    reports:
+      dotenv: package.env
+
+.package:release:
+  extends: .gradle_job_template
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+  script:
+    - export IMAGE_TAG=$(gradle cV -q -Prelease.quiet)
+    - export IMAGE_FQDN=$IMAGE_REPO:$IMAGE_TAG
+    - echo IMAGE_TAG=$IMAGE_TAG >> package.env
+    - echo IMAGE_FQDN=$IMAGE_FQDN >> package.env
+    - gradle jib $GRADLE_SUFFIX
+  artifacts:
+    reports:
+      dotenv: package.env
+
+# Pre-define cluster & context to be worked on incl. credentials
+.prepare_kubectl: &prepare_kubectl
+  - kubectl config set-cluster $KUBERNETES_SERVER_NAME --server=$KUBERNETES_SERVER_URL
+  - kubectl config set-credentials $KUBERNETES_USER --token=$KUBERNETES_DEPLOY_TOKEN
+  - kubectl config set-context $KUBERNETES_NAMESPACE --cluster=$KUBERNETES_SERVER_NAME --namespace=$KUBERNETES_NAMESPACE --user=$KUBERNETES_USER
+  - kubectl config use-context $KUBERNETES_NAMESPACE
+
+# Image to be used when doing any Kubernetes Jobs (Deployments)
+.kubectl_job_template:
+  image: dockerhub.com/kustomize-kubectl-helm
+  before_script:
+    - *prepare_kubectl
+
+.sign-image:
+  extends: .kubectl_job_template
+  script:
+    - export DOCKER_CONFIG=$(pwd)/.docker
+    - mkdir -p $DOCKER_CONFIG
+    - cosign login $DOCKER_REGISTRY_ADDRESS -u $MTR_DEVOPS_USERNAME -p $MTR_DEVOPS_PASSWORD
+    - cosign sign --key k8s://$KUBERNETES_NAMESPACE/cosign $IMAGE_FQDN
+
+.sign-image:playground:
+  extends: .sign-image
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  variables:
+    KUBERNETES_SERVER_URL: $KUBERNETES_SERVER_URL_dev
+    KUBERNETES_SERVER_NAME: $KUBERNETES_SERVER_NAME_dev
+    KUBERNETES_USER: $KUBERNETES_USER_dev
+    KUBERNETES_DEPLOY_TOKEN: $KUBERNETES_DEPLOY_TOKEN_dev
+    KUBERNETES_NAMESPACE: $KUBERNETES_NAMESPACE_dev
+  dependencies:
+    - package:snapshot
+
+.sign-image:prod:
+  extends: .sign-image
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+  variables:
+    KUBERNETES_SERVER_URL: $KUBERNETES_SERVER_URL_prod
+    KUBERNETES_SERVER_NAME: $KUBERNETES_SERVER_NAME_prod
+    KUBERNETES_USER: $KUBERNETES_USER_prod
+    KUBERNETES_DEPLOY_TOKEN: $KUBERNETES_DEPLOY_TOKEN_prod
+    KUBERNETES_NAMESPACE: $KUBERNETES_NAMESPACE_prod
+  dependencies:
+    - package:release
+
+.deploy:
+  extends: .kubectl_job_template
+  script:
+    - mkdir -p kubernetes
+    - envsubst "$(printf '${%s} ' $(env | cut -d'=' -f1))" < k8s/service.yml > kubernetes/service.yml
+    - envsubst "$(printf '${%s} ' $(env | cut -d'=' -f1))" < k8s/hpa.yml > kubernetes/hpa.yml
+    - envsubst "$(printf '${%s} ' $(env | cut -d'=' -f1))" < k8s/pdb.yml > kubernetes/pdb.yml
+    - envsubst "$(printf '${%s} ' $(env | cut -d'=' -f1))" < k8s/servicemonitor.yml > kubernetes/servicemonitor.yml
+    - if [ -f k8s/ingress.yml  ]; then envsubst "$(printf '${%s} ' $(env | cut -d'=' -f1))" < k8s/ingress.yml > kubernetes/ingress.yml; fi;
+    - envsubst "$(printf '${%s} ' $(env | cut -d'=' -f1))" < k8s/deployment.yml > kubernetes/deployment.yml
+    - envsubst "$(printf '${%s} ' $(env | cut -d'=' -f1))" < k8s/service.yml | kubectl apply -f -
+    - envsubst "$(printf '${%s} ' $(env | cut -d'=' -f1))" < k8s/hpa.yml | kubectl apply -f -
+    - envsubst "$(printf '${%s} ' $(env | cut -d'=' -f1))" < k8s/pdb.yml | kubectl apply -f -
+    - envsubst "$(printf '${%s} ' $(env | cut -d'=' -f1))" < k8s/servicemonitor.yml | kubectl apply -f -
+    - if [ -f k8s/ingress.yml  ]; then envsubst "$(printf '${%s} ' $(env | cut -d'=' -f1))" < k8s/ingress.yml | kubectl apply -f -; fi;
+    - if [ -f k8s/secret.yml  ]; then envsubst "$(printf '${%s} ' $(env | cut -d'=' -f1))" < k8s/secret.yml | kubectl apply -f -; fi;
+    - envsubst "$(printf '${%s} ' $(env | cut -d'=' -f1))" < k8s/deployment.yml | kubectl apply -f -
+    - kubectl rollout status deployment/${APP_NAME}
+  artifacts:
+    when: always
+    paths:
+      - kubernetes/*
+    expire_in: 14 days
+
+.deploy:playground:
+  extends: .deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  variables:
+    KUBERNETES_SERVER_URL: $KUBERNETES_SERVER_URL_dev
+    KUBERNETES_SERVER_NAME: $KUBERNETES_SERVER_NAME_dev
+    KUBERNETES_USER: $KUBERNETES_USER_dev
+    KUBERNETES_DEPLOY_TOKEN: $KUBERNETES_DEPLOY_TOKEN_dev
+    KUBERNETES_NAMESPACE: $KUBERNETES_NAMESPACE_dev
+    MAX_REPLICAS: 3
+    MIN_REPLICAS: 1
+    TARGET_CPU_UTILIZATION_PERCENTAGE: 80
+    MIN_AVAILABLE: 0
+    SPRING_SLEUTH_ENABLED: "true"
+    SPRING_SLEUTH_SAMPLER_PROBABILITY: "1"
+    SPRING_ZIPKIN_ENABLED: "true"
+    SPRING_ZIPKIN_BASE_URL: "baseurl:443"
+    MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: "endpoint:443/api/v2/spans"
+    ENVIRONMENT_INFO: "playground"
+  environment:
+    name: PLAYGROUND
+    deployment_tier: development
+  dependencies:
+    - package:snapshot
+
+.deploy:prod:
+  extends: .deploy
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+      when: manual
+  allow_failure: true # just to make pipeline "passed"
+  variables:
+    KUBERNETES_SERVER_URL: $KUBERNETES_SERVER_URL_prod
+    KUBERNETES_SERVER_NAME: $KUBERNETES_SERVER_NAME_prod
+    KUBERNETES_USER: $KUBERNETES_USER_prod
+    KUBERNETES_DEPLOY_TOKEN: $KUBERNETES_DEPLOY_TOKEN_prod
+    KUBERNETES_NAMESPACE: $KUBERNETES_NAMESPACE_prod
+    MAX_REPLICAS: 3
+    MIN_REPLICAS: 2
+    TARGET_CPU_UTILIZATION_PERCENTAGE: 80
+    MIN_AVAILABLE: 1
+    SPRING_SLEUTH_ENABLED: "true"
+    SPRING_SLEUTH_SAMPLER_PROBABILITY: "1"
+    SPRING_ZIPKIN_ENABLED: "true"
+    SPRING_ZIPKIN_BASE_URL: "baseurl:443"
+    MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: "endpoint:443/api/v2/spans"
+    ENVIRONMENT_INFO: "prod"
+  environment:
+    name: PRODUCTION
+    deployment_tier: production
+  dependencies:
+    - package:release
+
+.start-qs:
+  variables:
+    TEST_PROJECT: "57097"
+  trigger:
+    project: develoment/testframework
+    branch: master
+
+.start-qs:playground:
+  extends: .start-qs
+  only:
+    - main
+    - master
+  variables:
+    UPSTREAM_BRANCH: master
+
+.start-qs:preprod:
+  extends: .start-qs
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+  variables:
+    UPSTREAM_BRANCH: release/preprod
