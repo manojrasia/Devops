@@ -1,0 +1,6 @@
+
+
+1) application has fluentbit as sidecar container which collect data from application
+2) then it ship data to flentd for data aggregation and processing
+3) after that is ship to elasicsearch for storage and indexing
+4) at last it ship to kibana for analysis and visualization
