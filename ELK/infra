@@ -4,3 +4,6 @@
 2) then it ship data to flentd for data aggregation and processing
 3) after that is ship to elasicsearch for storage and indexing
 4) at last it ship to kibana for analysis and visualization
+
+
+basically we write fulentbit confimap file where in input-tail.confg tag and path defined and host select as flentd and create sidecar container in application mount configmap and tmp
