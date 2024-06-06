@@ -1,0 +1,13 @@
+Use keytool explorer s/w to check if certigicate is ok and have pass or not
+
+get certificate in .p12 format and should not have any password
+
+	1) This will change the password of your keystore to an empty password
+
+keytool -storetype pkcs12 -keystore ~/Downloads/dev.pem.p12  -storepasswd -storepass ''
+
+	1) This invokes the OpenSSL tool to perform base64 encoding
+
+openssl base64 -in ~/Downloads/dev.pem.p12  -out devp12222.txt
+
+cat prodp12222.txt
