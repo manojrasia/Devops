@@ -1,4 +1,5 @@
-Use keytool explorer s/w to check if certigicate is ok and have pass or not
+Use keytool explorer s/w to check if certigicate is ok and have pass or not and also store this cert in file format variables in gitlab
+Copy old certificate variabls beforehand
 
 get certificate in .p12 format and should not have any password
 
