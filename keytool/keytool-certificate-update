@@ -14,6 +14,7 @@ openssl base64 -in ~/Downloads/dev.pem.p12  -out devp12222.txt
 cat prodp12222.txt
 ---------
 Prerequisites:-
+
 Reference to the GitLab .gitlab-ci.yml · main 
 Have .p12 certificates for each environment.
 No password set on certificates .
