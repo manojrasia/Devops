@@ -51,3 +51,38 @@ Example of Updating Environment Variables:
 DEV_KEYSTORE: Assign the base64-encoded certificate file (devp12222.txt) content.
 DEV_KEYSTORE_PASSWORD: set the password value _KEYSTORE_PASSWORD.
 Repeat the above for other environments (PREPROD, PROD) as necessary.
+
+---
+
+deploy-develop:
+  stage: deploy-develop
+  image: kustomize-kubectl-helm-cosign-kics
+  tags:
+    - $KUBERNETES_RUNNER
+  variables:
+    KUBERNETES_SHORTNAME : $DEV_KUBERNETES_SHORTNAME
+    KUBERNETES_URL : $DEV_KUBERNETES_URL
+    KUBERNETES_USER : $DEV_KUBERNETES_USER
+    KUBERNETES_USER_TOKEN : $DEV_KUBERNETES_USER_TOKEN
+    KUBERNETES_NAMESPACE: dev
+    MONGODB_USER_PASSWORD: $DEV_MONGODB_USER_PASSWORD
+    DEV_KEYSTORE: $DEV_KEYSTORE
+    DEV_KEYSTORE_PASSWORD: $DEV_KEYSTORE_PASSWORD
+  script:
+    - kubectl config set-cluster $KUBERNETES_SHORTNAME --server=$KUBERNETES_URL
+    - kubectl config set-credentials $KUBERNETES_USER --token=$KUBERNETES_USER_TOKEN
+    - kubectl config set-context $KUBERNETES_NAMESPACE --cluster=$KUBERNETES_SHORTNAME --namespace=$KUBERNETES_NAMESPACE --user=$KUBERNETES_USER
+    - kubectl config use-context $KUBERNETES_NAMESPACE
+    - kubectl create secret generic cosign  --from-file=cosign.pub=$COSIGN_PUB --dry-run=client -o yaml | kubectl apply -f -
+    - kubectl apply -f kubernetes/telekom/dev/workflow-engine-secret.yaml
+    - cat $DEV_KEYSTOR | base64 --decode > keystore.p12
+    - kubectl create secret generic java-keystore --from-file=keystore.p12=keystore.p12 --from-file=ks-password=$DEV_KEYSTORE_PASSWORD --dry-run=client -o yaml | kubectl apply -f -
+    - echo "$(envsubst '${MONGODB_USER_PASSWORD},${CLIENT_SECRET},${CLIENT_SECRET_DEV},${CLIENT_SECRET_PREPROD},${CLIENT_SECRET_CIT2}' < kubernetes/telekom/dev/configmap-env.yaml)" > kubernetes/telekom/dev/configmap-env.yaml
+    - cd kubernetes/dev
+    - kustomize build . | kubectl apply -f -
+  only:
+    variables:
+      - $ENVIRONMENT =~ "JADU"
+  environment:
+    name: develop
+
