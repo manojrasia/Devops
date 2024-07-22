@@ -12,3 +12,41 @@ keytool -storetype pkcs12 -keystore ~/Downloads/dev.pem.p12  -storepasswd -store
 openssl base64 -in ~/Downloads/dev.pem.p12  -out devp12222.txt
 
 cat prodp12222.txt
+---------
+Prerequisites:-
+Reference to the GitLab .gitlab-ci.yml · main 
+Have .p12 certificates for each environment.
+No password set on certificates .
+Download and installation of KeyTool Explorer software.
+Backup of old environment variable values in GitLab.
+
+Step 1: Verify and Prepare Certificates
+Check Certificate Using KeyTool Explorer:
+Open the dev.p12 certificate file in KeyTool Explorer software.
+Verify if the certificate requires a password:
+If prompted for a password and can proceed without entering one, note that it is passwordless.
+If a password is required, proceed to set the _KEYSTORE_PASSWORD value accordingly for automation.
+
+Step 2: Base64 Encode Certificates
+You have two methods to encode the certificate in base64 format:
+
+Option 1: Using openssl directly
+
+openssl base64 -in ~/Downloads/dev.p12 -out devp12222.txt
+
+Option 2: Using cat and base64
+
+cat ~/Downloads/dev.p12 | base64 -w 0 > devp12222.txt
+
+Verify the Encoded File
+cat devp12222.txt
+
+Ensure that the content displayed matches the expected base64-encoded certificate.
+
+Step 3: Update Environment Variables
+Update the environment variables in your Infrastructure project with the .txt files obtained from Step 2 and have variable of type(File Protected Expanded)
+
+Example of Updating Environment Variables:
+DEV_KEYSTORE: Assign the base64-encoded certificate file (devp12222.txt) content.
+DEV_KEYSTORE_PASSWORD: set the password value _KEYSTORE_PASSWORD.
+Repeat the above for other environments (PREPROD, PROD) as necessary.
